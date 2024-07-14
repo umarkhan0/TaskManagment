@@ -1,45 +1,52 @@
 import React, { useEffect } from 'react';
-import { Avatar, Button, CssBaseline, TextField, Grid, Box, Typography, Container } from '@mui/material';
+import { Avatar, Button, CssBaseline, TextField, Grid, Box, Typography, Container, CircularProgress } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { NavLink } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { signUp , resetSignupState} from '../../redux/Features/auth/signUp';
+import { signUp, resetSignupState } from '../../redux/Features/auth/signUp';
 import swal from 'sweetalert';
+import { useNavigate } from 'react-router-dom';
 
 const theme = createTheme();
 
 const Signup = () => {
-    let dispatch = useDispatch();
-    const { handleSubmit, control, formState: { errors } } = useForm();
-    const { isLoading, error, success } = useSelector((state) => state?.signUp);
-  
-    useEffect(() => {
-      if (success) {
-        swal({
-          title: 'Success!',
-          text: 'User signed up successfully!',
-          icon: 'success',
-        });
-        dispatch(resetSignupState()); // Reset signUp state after successful signup
-      }
-    }, [success, dispatch]);
-  
-    useEffect(() => {
-      if (error) {
-        swal({
-          title: 'Error!',
-          text: typeof error === 'string' ? error : 'An error occurred',
-          icon: 'error',
-        });
-        dispatch(resetSignupState());
-      }
-    }, [error]);
-  
-    const onSubmit = (data) => {
-      dispatch(signUp(data));
-    };
+  const checkSign = localStorage.getItem("Sign");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (checkSign) {
+      navigate("/home");
+    }
+  }, [checkSign, navigate]);
+
+  const { handleSubmit, control, formState: { errors } } = useForm();
+  const { isLoading, error, success } = useSelector((state) => state?.signUp);
+
+  useEffect(() => {
+    if (success) {
+      localStorage.setItem("Sign", success.data.token);
+      navigate("/home");
+      dispatch(resetSignupState()); // Reset signUp state after successful signup
+    }
+  }, [success, dispatch, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      swal({
+        title: 'Error!',
+        text: typeof error === 'string' ? error : 'An error occurred',
+        icon: 'error',
+      });
+      dispatch(resetSignupState());
+    }
+  }, [error, dispatch]);
+
+  const onSubmit = (data) => {
+    dispatch(signUp(data));
+  };
 
   return (
     <ThemeProvider theme={theme}>
@@ -54,35 +61,49 @@ const Signup = () => {
             boxShadow: '0px 0px 10px rgba(0, 0, 0, 0.1)', // Add box shadow here
             borderRadius: '8px', // Optional: Add border radius for a rounded look
             padding: '20px', // Optional: Add padding inside the box
-
+            position: 'relative', // To position the spinner overlay
           }}
         >
-        
+          {isLoading && (
+            <Box
+              sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'rgba(255, 255, 255, 0.7)', // Semi-transparent background
+                zIndex: 1, // Ensure the overlay is on top
+              }}
+            >
+              <CircularProgress />
+            </Box>
+          )}
           <Typography component="h1" variant="h4">
             Sign Up
           </Typography>
           <Box component="form" noValidate onSubmit={handleSubmit(onSubmit)} sx={{ mt: 3 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-              <Typography variant="body1" color="textSecondary" sx={{mb: "4px"}}>
-              Enter name
-            </Typography>
+                <Typography variant="body1" color="textSecondary" sx={{ mb: "4px" }}>
+                  Enter name
+                </Typography>
                 <Controller
                   name="name"
                   control={control}
-                  
-                 
                   rules={{ required: 'Name is required' }}
                   render={({ field }) => (
                     <TextField
-                    {...field}
-                    placeholder='Enter Name'
+                      {...field}
+                      placeholder='Enter Name'
                       autoComplete="name"
                       name="name"
                       required
                       fullWidth
                       id="name"
-                    
                       autoFocus
                       error={!!errors.name}
                       helperText={errors.name ? errors.name.message : ''}
@@ -91,9 +112,9 @@ const Signup = () => {
                 />
               </Grid>
               <Grid item xs={12}>
-              <Typography variant="body1" color="textSecondary" sx={{mb: "4px"}}>
-              Enter Email
-            </Typography>
+                <Typography variant="body1" color="textSecondary" sx={{ mb: "4px" }}>
+                  Enter Email
+                </Typography>
                 <Controller
                   name="email"
                   control={control}
@@ -112,7 +133,6 @@ const Signup = () => {
                       placeholder='Email is required'
                       fullWidth
                       id="email"
-                     
                       name="email"
                       autoComplete="email"
                       error={!!errors.email}
@@ -121,11 +141,10 @@ const Signup = () => {
                   )}
                 />
               </Grid>
-              
               <Grid item xs={12}>
-              <Typography variant="body1" color="textSecondary" sx={{mb: "4px"}}>
-              Enter Password
-            </Typography>
+                <Typography variant="body1" color="textSecondary" sx={{ mb: "4px" }}>
+                  Enter Password
+                </Typography>
                 <Controller
                   name="password"
                   control={control}
@@ -140,16 +159,13 @@ const Signup = () => {
                       message: 'Password must contain at least one letter and one number'
                     }
                   }}
-                  
                   render={({ field }) => (
-                    
                     <TextField
-                    {...field}
-                    required
-                    fullWidth
-                    placeholder='Enter Password'
+                      {...field}
+                      required
+                      fullWidth
+                      placeholder='Enter Password'
                       name="password"
-                     
                       type="password"
                       id="password"
                       autoComplete="new-password"
@@ -165,6 +181,7 @@ const Signup = () => {
               fullWidth
               variant="contained"
               sx={{ mt: 3, mb: 2 }}
+              disabled={isLoading} // Disable button while loading
             >
               Sign Up
             </Button>
