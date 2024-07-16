@@ -1,19 +1,18 @@
 import React, { useEffect } from 'react';
-import { Avatar, Button, CssBaseline, TextField, FormControlLabel, Checkbox, Grid, Box, Typography, Container, CircularProgress } from '@mui/material';
+import { Button, CssBaseline, TextField, FormControlLabel, Checkbox, Grid, Box, Typography, Container, CircularProgress } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, resetLoginState } from '../../redux/Features/auth/login';
+import { login, resetLoginState } from '../../redux/Features/auth/login'
 import swal from 'sweetalert';
-import { useNavigate } from 'react-router-dom';
 
 const theme = createTheme();
 
 const Login = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, success } = useSelector((state) => state?.login);
+  const { isLoading, loginData , error } = useSelector((state) => state.login);
 
   useEffect(() => {
     const checkSign = localStorage.getItem("Sign");
@@ -23,18 +22,18 @@ const Login = () => {
   }, [navigate]);
 
   useEffect(() => {
-    if (success) {
-      localStorage.setItem("Sign", success.data.token);
+    if (loginData) {
+      localStorage.setItem("Sign", loginData.data.token);
       navigate("/home");
-      dispatch(resetLoginState()); // Reset login state after successful login
+      dispatch(resetLoginState()); // Reset signUp state after successful signup
     }
-  }, [success, dispatch, navigate]);
+  }, [loginData, dispatch, navigate]);
 
   useEffect(() => {
     if (error) {
       swal({
         title: 'Error!',
-        text: typeof error === 'string' ? error : 'An error occurred',
+        text: typeof error === 'string' ? error : error.message        ,
         icon: 'error',
       });
       dispatch(resetLoginState());
@@ -146,7 +145,7 @@ const Login = () => {
             <Grid container>
               <Grid container justifyContent="flex-end">
                 <Grid item>
-                  <NavLink to="/signup" variant="body2">
+                  <NavLink to="/sign_up" variant="body2">
                     Don't have an account? Sign Up
                   </NavLink>
                 </Grid>
